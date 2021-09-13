@@ -1,15 +1,19 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <cstdlib>
 #include <ctime>
 #include <conio.h>
+#include <windows.h>
 
 
 
-#define MAZE_SIZE 41 // ¹Ì·Î Å©±â   ¹İµå½Ã È¦¼ö
-#define MIX_COUNT 3  // ·£´ı È½¼ö   ÀûÀ»¼ö·Ï ¹Ì·Î°¡ ºñ½ÁÇØÁü
-#define CROSS_PERCENT 35 // °¥¸²±æ È®·ü(ºĞ¸ğ)   ÀûÀ»¼ö·Ï °¥¸²±æÀÌ ¸¹¾ÆÁü
+#define MAZE_SIZE 41 // ë¯¸ë¡œ í¬ê¸°   ë°˜ë“œì‹œ í™€ìˆ˜
+#define MIX_COUNT 3  // ëœë¤ íšŸìˆ˜   ì ì„ìˆ˜ë¡ ë¯¸ë¡œê°€ ë¹„ìŠ·í•´ì§
+#define CROSS_PERCENT 35 // ê°ˆë¦¼ê¸¸ í™•ë¥ (ë¶„ëª¨)   ì ì„ìˆ˜ë¡ ê°ˆë¦¼ê¸¸ì´ ë§ì•„ì§
 
 using namespace std;
+
+// ìƒëª…ë ¥ ë³€ìˆ˜, ì ìˆ˜ ë³€ìˆ˜ info()ì—ì„œ ì“°ì„
+int health = 100, score = 500 + MAZE_SIZE * 35;
 
 enum {
 	OUTER_WALL = -1,
@@ -17,7 +21,8 @@ enum {
 	ROAD = 1,
 	FLAG = 2,
 	EXIT = 5,
-	PLAYER = 10
+	PLAYER = 10,
+	ENEMY = 15
 };
 enum {
 	EAST = 0,
@@ -30,7 +35,7 @@ int maze[MAZE_SIZE][MAZE_SIZE] = { WALL, };
 
 
 void CreateMaze();
-void dfs(int, int);
+void dfs(int,int);
 void ShowMaze();
 void PlayMaze();
 
@@ -46,7 +51,7 @@ int main()
 void CreateMaze()
 {
 	maze[MAZE_SIZE - 2][MAZE_SIZE - 1] = EXIT;
-	for (int i = 1; i < MAZE_SIZE; i += 2) // °ÅÃÄ¾ß ÇÏ´Â Æ÷ÀÎÆ® »ı¼º  ±æ»ı¼º½Ã Æ÷ÀÎÆ® ÀüºÎ¸¦ Áö³ª¾ßµÊ
+	for (int i = 1; i < MAZE_SIZE; i += 2) // ê±°ì³ì•¼ í•˜ëŠ” í¬ì¸íŠ¸ ìƒì„±  ê¸¸ìƒì„±ì‹œ í¬ì¸íŠ¸ ì „ë¶€ë¥¼ ì§€ë‚˜ì•¼ë¨
 	{
 		for (int j = 1; j < MAZE_SIZE; j += 2)
 		{
@@ -58,15 +63,15 @@ void CreateMaze()
 }
 
 
-void dfs(int y, int x) // ±æ¶Õ´Â ÇÔ¼ö
+void dfs(int y, int x) // ê¸¸ëš«ëŠ” í•¨ìˆ˜
 {
-	int d1[4][2] = { {0,1},{0,-1},{1,0},{-1,0} }; //¿À¸¥ÂÊ, ¿ŞÂÊ, ¾Æ·¡, À§
+	int d1[4][2] = { {0,1},{0,-1},{1,0},{-1,0} }; //ì˜¤ë¥¸ìª½, ì™¼ìª½, ì•„ë˜, ìœ„
 	int d2[4][2] = { {0,2},{0,-2},{2,0},{-2,0} };
 
 
-	int dir[4] = { EAST, WEST, SOUTH, NORTH };  // °¡¾ßÇÒ ¹æÇâ ¼ø¼­
+	int dir[4] = { EAST, WEST, SOUTH, NORTH };  // ê°€ì•¼í•  ë°©í–¥ ìˆœì„œ
 	int i = MIX_COUNT;
-	while (i--)  // ±æ ¶Õ´Â ¹æÇâÀ» ·£´ıÀ¸·Î ÇÏ±â À§ÇØ ¹«ÀÛÀ§·Î ¼¯À½
+	while (i--)  // ê¸¸ ëš«ëŠ” ë°©í–¥ì„ ëœë¤ìœ¼ë¡œ í•˜ê¸° ìœ„í•´ ë¬´ì‘ìœ„ë¡œ ì„ìŒ
 	{
 		swap(dir[rand() % 4], dir[rand() % 4]);
 	}
@@ -74,24 +79,24 @@ void dfs(int y, int x) // ±æ¶Õ´Â ÇÔ¼ö
 
 	for (int j = 0; j < 4; j++)
 	{
-		int dy1 = d1[dir[j]][1], dx1 = d1[dir[j]][0]; // ¿òÁ÷¿©¾ß µÇ´Â °Å¸®
+		int dy1 = d1[dir[j]][1], dx1 = d1[dir[j]][0]; // ì›€ì§ì—¬ì•¼ ë˜ëŠ” ê±°ë¦¬
 		int dy2 = d2[dir[j]][1], dx2 = d2[dir[j]][0];
 
 
 
-		if (x + dx2 >= MAZE_SIZE || x + dx2 < 0 || y + dy2 >= MAZE_SIZE || y + dy2 < 0)   // ¹è¿­ ¹üÀ§ ÃÊ°ú½Ã ½ºÅµ
+		if (x + dx2 >= MAZE_SIZE || x + dx2 < 0 || y + dy2 >= MAZE_SIZE || y + dy2 < 0)   // ë°°ì—´ ë²”ìœ„ ì´ˆê³¼ì‹œ ìŠ¤í‚µ
 			continue;
 
-		if (maze[y + dy2][x + dx2] == FLAG) // ¸¸¾à ÇØ´ç ¹æÇâ¿¡ Áö³ªÁö ¾ÊÀº Æ÷ÀÎÆ®°¡ ÀÖÀ»°æ¿ì
+		if (maze[y + dy2][x + dx2] == FLAG) // ë§Œì•½ í•´ë‹¹ ë°©í–¥ì— ì§€ë‚˜ì§€ ì•Šì€ í¬ì¸íŠ¸ê°€ ìˆì„ê²½ìš°
 		{
 
-			maze[y + dy1][x + dx1] = ROAD; // »çÀÌ¿¡ ÀÖ´Â º®À» ¶ÕÀ½
-			maze[y + dy2][x + dx2] = ROAD;	// Æ÷ÀÎÆ®¸¦ ±æ·Î ¹Ù²Ş 
+			maze[y + dy1][x + dx1] = ROAD; // ì‚¬ì´ì— ìˆëŠ” ë²½ì„ ëš«ìŒ
+			maze[y + dy2][x + dx2] = ROAD;	// í¬ì¸íŠ¸ë¥¼ ê¸¸ë¡œ ë°”ê¿ˆ 
 			dfs(y + dy2, x + dx2);
 		}
-		else if (maze[y + dy2][x + dx2] == ROAD)
+		else if(maze[y + dy2][x + dx2] == ROAD)
 		{
-			if (rand() % CROSS_PERCENT == 0) // È®·üÀûÀ¸·Î ¿ø·¡ ÀÖ´ø ±æ°ú ¿¬°áµÊ (°¥¸²±æ »ı¼º)
+			if (rand() % CROSS_PERCENT == 0) // í™•ë¥ ì ìœ¼ë¡œ ì›ë˜ ìˆë˜ ê¸¸ê³¼ ì—°ê²°ë¨ (ê°ˆë¦¼ê¸¸ ìƒì„±)
 			{
 				maze[y + dy1][x + dx1] = ROAD;
 			}
@@ -111,13 +116,15 @@ void ShowMaze()
 		{
 			switch (maze[i][j])
 			{
-			case WALL: cout << "¡á";
+			case WALL: cout << "â– ";
 				break;
 			case ROAD: cout << "  ";
 				break;
-			case FLAG: cout << "£À";
+			case FLAG: cout << "ï¼ ";
 				break;
-			case PLAYER: cout << "¡Ù";
+			case PLAYER: cout << "â˜†";
+				break;
+			case ENEMY: cout << "â–³";
 				break;
 			default: cout << "  ";
 			}
@@ -127,40 +134,149 @@ void ShowMaze()
 }
 
 
+// ì¸ê²Œì„ ë„ì›€ë§ ì¶œë ¥
+void info1() {
+	printf("\n");
+	printf("â”Œ---------------â”\n");
+	printf("â”‚ ìƒëª…ë ¥ : %4d â”‚\n", health);
+	printf("â”‚ ì   ìˆ˜ : %4d â”‚\n", score);
+	printf("â””---------------â”˜\n");
+	printf("â”Œ---------------â”\n");
+	printf("â”‚ ìƒ : â†‘ or w  â”‚\n");
+	printf("â”‚ í•˜ : â†“ or s  â”‚\n");
+	printf("â”‚ ì¢Œ : â† or a  â”‚\n");
+	printf("â”‚ ìš° : â†’ or d  â”‚\n");
+	printf("â””---------------â”˜\n");
+}
+
+void info2() { // ê²Œì„ í´ë¦¬ì–´ì‹œ í˜¸ì¶œ (ì ìˆ˜ = ì ìˆ˜ + (ìƒëª…ë ¥ *5)ë¡œ ê³„ì‚° )
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”Œ----------------------------------------------â”\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”‚   G  A  M  E                 C  L  E  A  R   â”‚\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”‚                                              â”‚\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”‚  ì   ìˆ˜ : %4d [%4d + ìƒëª…ë ¥ ë³´ë„ˆìŠ¤ %3d * 5]â”‚\n", score + (health * 5),score, health);
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ””----------------------------------------------â”˜\n");
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+}
+
+void info3() { // ê²Œì„ ì˜¤ë²„ì‹œ í˜¸ì¶œ (ì—¬ê¸°ëŠ” ê·¸ëƒ¥ ì ìˆ˜ë§Œ ì¶œë ¥)
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”Œ----------------------------------------------â”\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”‚   G  A  M  E                    O  V  E  R   â”‚\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”‚                                              â”‚\n");
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ”‚   ì      ìˆ˜ :                     %4d       â”‚\n", score);
+	printf("\t\t\t\t\t\t\t\t\t\t\tâ””----------------------------------------------â”˜\n");
+	printf("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+}
+
+
+
 void PlayMaze()
 {
 	int player_x = 1;
 	int player_y = 1;
 	maze[player_y][player_x] = PLAYER;
 
+	// ì  ì´ˆê¸° ìƒì„±
+	int enemy1_x;
+	int	enemy1_y;
+	while (1) {
+		enemy1_x = rand() % MAZE_SIZE - 2;
+		enemy1_y = rand() % MAZE_SIZE - 2;
+		if (maze[enemy1_y][enemy1_x] == ROAD) {
+			maze[enemy1_y][enemy1_x] = ENEMY;
+			break;
+		}
+	}
+
+	//ì ì˜ ì´ë™ë°©í–¥ì„ ë‹´ëŠ” ë³€ìˆ˜
+	int enemy_move;
+
 	ShowMaze();
+	info1();
+
 	while (1)
 	{
+		score -= 5;
 		int key = _getch();
 		maze[player_y][player_x] = ROAD;
 		switch (key)
 		{
 		case 'a':
-		case 75:
-			if (maze[player_y][player_x - 1] == ROAD) player_x--;
+		case VK_LEFT:
+			if (maze[player_y][player_x - 1] != WALL) player_x--;
 			break;
 		case 'd':
-		case 77:
-			if (maze[player_y][player_x + 1] == ROAD) player_x++;
+		case VK_RIGHT:
+			if (maze[player_y][player_x + 1] != WALL) player_x++;
 			break;
 		case 'w':
-		case 72:
-			if (maze[player_y - 1][player_x] == ROAD) player_y--;
+		case VK_UP:
+			if (maze[player_y - 1][player_x] != WALL) player_y--;
 			break;
 		case 's':
-		case 80:
-			if (maze[player_y + 1][player_x] == ROAD) player_y++;
+		case VK_DOWN:
+			if (maze[player_y + 1][player_x] != WALL) player_y++;
 			break;
 		default:
 			break;
 		}
+
+
+		// ì ì´ ì´ë™í•˜ëŠ” ë°©í–¥ ëœë¤ìœ¼ë¡œ ì •í•¨
+		enemy_move = rand() % 4;
+
+		maze[enemy1_y][enemy1_x] = ROAD;
+		// ëœë¤ìœ¼ë¡œ ë½‘íŒ ì ì˜ ë°©í–¥ì„ í‘œí˜„
+		switch (enemy_move)
+		{
+		case 0: // ì™¼ìª½
+			if (maze[enemy1_y][enemy1_x - 1] != WALL) enemy1_x--;
+			break;
+		case 1: // ì˜¤ë¥¸ìª½
+			if (maze[enemy1_y][enemy1_x + 1] != WALL && maze[enemy1_y][enemy1_x + 1] != EXIT) enemy1_x++;
+			break;
+		case 2:// ìœ„
+			if (maze[enemy1_y - 1][enemy1_x] != WALL) enemy1_y--;
+			break;
+		case 3:// ì•„ë˜
+			if (maze[enemy1_y + 1][enemy1_x] != WALL) enemy1_y++;
+			break;
+		default:
+			break;
+		}
+
+
+
 		maze[player_y][player_x] = PLAYER;
+		maze[enemy1_y][enemy1_x] = ENEMY;
 		system("cls");
 		ShowMaze();
+		info1();
+
+		// ì ê³¼ í”Œë ˆì´ì–´ê°€ ê²¹ì³ì¡Œì„ ë•Œ
+		if (enemy1_y == player_y && enemy1_x == player_x)
+		{
+			health -= 10;
+			score -= 50;
+			// ìƒëª…ë ¥ì´ 0ì´í•˜ê°€ ë¼ì„œ ì£½ì—ˆì„ ë•Œ
+			if (health <= 0) {
+				system("cls");
+				info3();
+				// ê²Œì„ ì¢…ë£Œí•˜ë ¤ê³  ë¦¬í„´ë„£ìŒ
+				return (void)0;
+			}
+		}
+
+
+
+		// ê³¨ì¸ì§€ì  ë„ì°©ì‹œ
+		if (player_y == MAZE_SIZE - 2 && player_x == MAZE_SIZE - 1)
+		{
+			system("cls");
+			info2();
+			// ê²Œì„ ì¢…ë£Œí•˜ë ¤ê³  ë¦¬í„´ë„£ìŒ
+			return (void)0;
+		}
 	}
 }

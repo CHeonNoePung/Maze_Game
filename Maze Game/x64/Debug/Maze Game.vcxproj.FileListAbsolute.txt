@@ -1,0 +1,2 @@
+C:\Users\Admin\Desktop\Maze_Game\Maze Game\x64\Debug\Maze Game.exe
+C:\Users\Admin\Desktop\Maze_Game\Maze Game\x64\Debug\Maze Game.pdb
